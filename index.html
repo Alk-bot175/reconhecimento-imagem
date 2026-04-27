@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alexandre Mendes Silveira — Vision AI</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --bg:        #09090f;
+      --surface:   #111120;
+      --border:    #22223a;
+      --accent:    #5dffc3;
+      --accent2:   #6c63ff;
+      --text:      #e8e8f0;
+      --muted:     #7070a0;
+      --danger:    #ff5c8a;
+      --radius:    1.2rem;
+      --mono:      'DM Mono', monospace;
+      --display:   'Syne', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Background grid ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(108,99,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(108,99,255,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Glowing orbs ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 500px; height: 500px; background: rgba(93,255,195,.06); top: -150px; right: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: rgba(108,99,255,.08); bottom: -100px; left: -80px; }
+
+    /* ── Layout ── */
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      max-width: 720px;
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .badge-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      background: rgba(93,255,195,.08);
+      border: 1px solid rgba(93,255,195,.25);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: .3rem .9rem;
+      border-radius: 100px;
+      margin-bottom: 1.2rem;
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      line-height: 1.1;
+      letter-spacing: -.02em;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: .82rem;
+      letter-spacing: .06em;
+      margin-top: .8rem;
+    }
+
+    /* ── Card ── */
+    .card-glass {
+      background: rgba(17,17,32,.85);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      width: 100%;
+      max-width: 720px;
+      padding: 2rem;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.03), 0 24px 60px rgba(0,0,0,.6);
+    }
+
+    /* ── Start Button ── */
+    #btn-start {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .7rem;
+      width: 100%;
+      padding: 1rem 1.5rem;
+      border: none;
+      border-radius: .9rem;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: #09090f;
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: .04em;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      box-shadow: 0 0 32px rgba(93,255,195,.2), 0 4px 20px rgba(108,99,255,.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #btn-start::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,.12);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    #btn-start:hover::after { opacity: 1; }
+
+    #btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 48px rgba(93,255,195,.35), 0 8px 30px rgba(108,99,255,.4);
+    }
+
+    #btn-start:active { transform: translateY(0); }
+
+    #btn-start.loading {
+      pointer-events: none;
+      filter: brightness(.8);
+    }
+
+    .spinner-ring {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(0,0,0,.3);
+      border-top-color: #09090f;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    #btn-start.loading .spinner-ring { display: block; }
+    #btn-start.loading .btn-icon     { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Webcam container ── */
+    #webcam-wrapper {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+      margin-top: 1.8rem;
+    }
+
+    #webcam-wrapper.active { display: flex; }
+
+    #webcam-container {
+      position: relative;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 0 0 4px rgba(93,255,195,.07);
+    }
+
+    #webcam-container canvas {
+      display: block;
+      width: 100% !important;
+      max-width: 320px;
+      height: auto !important;
+      border-radius: 1rem;
+    }
+
+    /* Live dot */
+    .live-badge {
+      position: absolute;
+      top: .7rem; left: .7rem;
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      background: rgba(9,9,15,.75);
+      border: 1px solid rgba(255,92,138,.3);
+      color: var(--danger);
+      font-size: .65rem;
+      font-family: var(--mono);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: .25rem .6rem;
+      border-radius: 100px;
+      backdrop-filter: blur(8px);
+    }
+
+    .live-dot {
+      width: 6px; height: 6px;
+      background: var(--danger);
+      border-radius: 50%;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+    /* ── Label / progress section ── */
+    #label-section {
+      width: 100%;
+    }
+
+    .section-title {
+      font-family: var(--display);
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .prediction-item {
+      margin-bottom: 1rem;
+    }
+
+    .prediction-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: .4rem;
+    }
+
+    .class-name {
+      font-size: .78rem;
+      letter-spacing: .05em;
+      color: var(--text);
+    }
+
+    .class-percent {
+      font-size: .85rem;
+      font-weight: 500;
+      color: var(--accent);
+      transition: color .3s;
+      min-width: 3.5rem;
+      text-align: right;
+    }
+
+    .class-percent.low  { color: var(--muted); }
+    .class-percent.high { color: var(--accent); }
+
+    /* Custom progress bar */
+    .prog-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,.06);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .prog-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 100px;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      transition: width .25s ease, background .3s;
+      box-shadow: 0 0 10px rgba(93,255,195,.4);
+    }
+
+    .prog-fill.dominant {
+      background: linear-gradient(90deg, var(--accent), #b0ffdf);
+      box-shadow: 0 0 18px rgba(93,255,195,.6);
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 3rem;
+      color: var(--muted);
+      font-size: .7rem;
+      letter-spacing: .06em;
+      text-align: center;
+      z-index: 1;
+      position: relative;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── Responsive ── */
+    @media (max-width: 576px) {
+      .card-glass { padding: 1.4rem 1rem; }
+      #webcam-container canvas { max-width: 260px; }
+    }
+
+    /* ── Fade-in animation for card ── */
+    .card-glass {
+      animation: fadeUp .6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="page-wrapper">
+
+    <!-- Header -->
+    <header>
+      <div class="badge-chip">
+        <i class="bi bi-cpu-fill"></i>
+        Teachable Machine
+      </div>
+      <h1>Alexandre<br/><span>Mendes Silveira</span></h1>
+      <p class="subtitle">// Reconhecimento de Imagem em Tempo Real</p>
+    </header>
+
+    <!-- Main Card -->
+    <div class="card-glass">
+
+      <!-- Button -->
+      <button id="btn-start" onclick="init()">
+        <span class="spinner-ring"></span>
+        <i class="bi bi-camera-video-fill btn-icon"></i>
+        Ativar Câmera &amp; Iniciar Modelo
+      </button>
+
+      <!-- Webcam + Labels -->
+      <div id="webcam-wrapper">
+
+        <!-- Webcam -->
+        <div id="webcam-container" style="position:relative;">
+          <div class="live-badge">
+            <span class="live-dot"></span>
+            Live
+          </div>
+        </div>
+
+        <!-- Predictions -->
+        <div id="label-section" class="w-100">
+          <div class="section-title"><i class="bi bi-bar-chart-fill"></i> Predições</div>
+          <div id="label-container"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      Powered by <a href="https://teachablemachine.withgoogle.com/" target="_blank">Teachable Machine</a>
+      &amp; <a href="https://www.tensorflow.org/js" target="_blank">TensorFlow.js</a>
+    </footer>
+
+  </div>
+
+  <!-- TensorFlow + Teachable Machine -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    const URL = "https://teachablemachine.withgoogle.com/models/AFja_tXyP/";
+    let model, webcam, labelContainer, maxPredictions;
+    let fillEls = [];
+
+    async function init() {
+      const btn = document.getElementById("btn-start");
+      btn.classList.add("loading");
+      btn.querySelector("span.spinner-ring").style.display = "block";
+
+      try {
+        const modelURL    = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+
+        model          = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+
+        const flip = true;
+        webcam = new tmImage.Webcam(320, 320, flip);
+        await webcam.setup();
+        await webcam.play();
+        window.requestAnimationFrame(loop);
+
+        // Append canvas
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+        // Show wrapper
+        document.getElementById("webcam-wrapper").classList.add("active");
+
+        // Build prediction rows
+        labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = "";
+        fillEls = [];
+
+        for (let i = 0; i < maxPredictions; i++) {
+          const item = document.createElement("div");
+          item.className = "prediction-item";
+
+          const header = document.createElement("div");
+          header.className = "prediction-header";
+
+          const nameEl = document.createElement("span");
+          nameEl.className = "class-name";
+          nameEl.textContent = "Classe " + (i + 1);
+
+          const pctEl = document.createElement("span");
+          pctEl.className = "class-percent low";
+          pctEl.textContent = "0%";
+
+          header.appendChild(nameEl);
+          header.appendChild(pctEl);
+
+          const track = document.createElement("div");
+          track.className = "prog-track";
+
+          const fill = document.createElement("div");
+          fill.className = "prog-fill";
+          track.appendChild(fill);
+          fillEls.push({ fill, pctEl, nameEl });
+
+          item.appendChild(header);
+          item.appendChild(track);
+          labelContainer.appendChild(item);
+        }
+
+        // Hide button after success
+        btn.style.display = "none";
+
+      } catch (err) {
+        console.error(err);
+        btn.classList.remove("loading");
+        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill btn-icon"></i> Erro — Tente Novamente';
+      }
+    }
+
+    async function loop() {
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+      const prediction = await model.predict(webcam.canvas);
+
+      // Find dominant class
+      let maxProb = 0;
+      let maxIdx  = 0;
+      for (let i = 0; i < maxPredictions; i++) {
+        if (prediction[i].probability > maxProb) {
+          maxProb = prediction[i].probability;
+          maxIdx  = i;
+        }
+      }
+
+      for (let i = 0; i < maxPredictions; i++) {
+        const prob    = prediction[i].probability;
+        const pct     = Math.round(prob * 100);
+        const isDom   = (i === maxIdx && pct > 10);
+
+        fillEls[i].nameEl.textContent = prediction[i].className;
+        fillEls[i].pctEl.textContent  = pct + "%";
+        fillEls[i].fill.style.width   = pct + "%";
+
+        fillEls[i].pctEl.className = "class-percent " + (pct > 50 ? "high" : "low");
+        fillEls[i].fill.className  = "prog-fill" + (isDom ? " dominant" : "");
+      }
+    }
+  </script>
+</body>
+</html>
